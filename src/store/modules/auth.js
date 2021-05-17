@@ -38,6 +38,7 @@ const mutations = {
 
 // 定义行为
 const actions = {
+  // 登录
   UserLogin({commit}, userData) {
     const { username, password } = userData
     return new Promise((resolve, reject) => {
@@ -54,6 +55,41 @@ const actions = {
         reject(err)
       })
     })
+  },
+  // 退出
+  UserLogout({state, commit}, redirectURL) {
+    api.logout(state.accessToken).then(res => {
+      // 重置状态
+      commit('RESET_USET_STATE')
+      // 重定向为来源地址,如果没有指定重定向地址，则重定向为登录面
+      window.location.href = redirectURL || '/'
+    }).catch(err => {
+      // 重置状态
+      commit('RESET_USET_STATE')
+      // 重定向为来源地址,如果没有指定重定向地址，则重定向为登录面
+      window.location.href = redirectURL || '/'
+    })
+  },
+  // 刷新令牌
+  SendRefreshToken({state, commit}) {
+    return new Promise((resolve, reject) => {
+      // 判断是否存在刷新令牌
+      if (!state.refreshToken) {
+        commit('RESET_USET_STATE')
+        reject('没有刷新令牌')
+        return
+      }
+      // 发送请求
+      api.refreshToken(state.refreshToken).then(res => {
+        // 更新用户状态
+        commit('SET_USER_STATE', res.data)
+        resolve()
+      }).catch(err => {
+        // 重置状态
+        commit('RESET_USET_STATE')
+        reject(err)
+      })
+    }) 
   }
 }
 

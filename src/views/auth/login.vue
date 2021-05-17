@@ -57,8 +57,8 @@
 </template>
 <script >
 import { isvalidUsername } from '@/utils/validate'
+import api from '@/api/auth'
 export default {
-
     data () {
       return {
         tab:  1, // 高亮当前标签名
@@ -76,7 +76,7 @@ export default {
         registerData: { // 注册表单数据
             username: '',
             password: '',
-            repassword: '',
+            repPassword: '',
             check: false
         },
       }
@@ -85,6 +85,10 @@ export default {
       if (this.$route.query.redirectURL) {
         this.redirectURL = this.$route.query.redirectURL
       }
+      // 获取协议内容
+      api.getProtocol().then(res => {
+        this.xieyiContent = res
+      })
     },
     methods: {
 
@@ -131,10 +135,57 @@ export default {
       },
 
       // 提交注册
-      regSubmit() {
+      async regSubmit() {
+        // 判断是否已经点击注册按钮
+        if (this.subState) {
+          return false
+        }
+        // 判断用户名是否合法
+        if (!isvalidUsername(this.registerData.username)) {
+          this.regMessage = '请输入正确的用户名: 包含4-30位中文，数组，字母或下划线'
+          return false
+        }
+        // 判断用户名是否已经存在
+        const { code, message, data } = await api.getUserByUsername(this.registerData.username)
+        if (code !== 20000) {
+          this.regMessage = message
+          return false
+        }
+        if (data) { // 为true表示已经被注册
+          this.regMessage = '用户名已存在'
+          return false
+        }
+        // 校验密码
+        if (this.registerData.password.length < 6 || this.registerData.password.length > 30) {
+          this.regMessage = '请输入6-30位密码，区分字母大小写且不可有空格'
+          return false
+        }
+        // 重复密码
+        if (this.registerData.repPassword !== this.registerData.password) {
+          this.regMessage = '两次输入的密码不一致'
+          return false
+        }
+        if (!this.registerData.check) {
+          this.regMessage = '请认真阅读并同意用户协议'
+          return false
+        }
+        this.subState = true
+        // 提交注册数据
+        try {
+          const { code, message } = await api.register(this.registerData)
+          this.subState = false
+          if (code === 20000) { // 注册成功
+            this.changetab(1)
+          } else {
+            this.regMessage = message
+          }
+          this.subState = false
+        } catch (err) {
+          this.regMessage = '系统繁忙，请稍后重试'
+          this.subState = false
+        }
         
       }
-
     },
 }
 </script>
