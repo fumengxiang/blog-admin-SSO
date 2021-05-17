@@ -56,6 +56,7 @@
   </div>
 </template>
 <script >
+import { isvalidUsername } from '@/utils/validate'
 export default {
 
     data () {
@@ -80,7 +81,11 @@ export default {
         },
       }
     },
-
+    created() {
+      if (this.$route.query.redirectURL) {
+        this.redirectURL = this.$route.query.redirectURL
+      }
+    },
     methods: {
 
       // 切换标签
@@ -94,7 +99,35 @@ export default {
 
       // 提交登录
       loginSubmit() {
-
+        // 校验表单
+        if (this.subState) { // 判断是否正在登录
+          return false
+        }
+        // 校验用户名
+        if (!isvalidUsername(this.loginData.username)) {
+          this.loginMessage = '请输入正确的用户名'
+          return false
+        }
+        // 校验密码
+        if (this.loginData.password.length < 6) {
+          this.loginMessage = '请输入正确的用户名或密码'
+          return false
+        }
+        this.subState = true // 登录中
+        this.$store.dispatch('UserLogin', this.loginData).then(res => {
+          const { code, message } = res
+          if (code === 20000) {
+            // 跳转回来源地址
+            window.location.href = this.redirectURL
+          } else {
+            this.loginMessage = message
+          }
+          this.subState = false
+        }).catch(err => {
+          // 登录失败
+          this.subState = false
+          this.loginMessage = '系统繁忙，请稍后重试'
+        })
       },
 
       // 提交注册
@@ -106,6 +139,6 @@ export default {
 }
 </script>
 <style scoped>
-@import '../../assets/style/login.css'; 
+@import '~@/assets/style/login.css';
 </style>
 

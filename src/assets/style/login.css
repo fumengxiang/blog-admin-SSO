@@ -1,6 +1,7 @@
 .login_page .login_box {
-    height: 650px;
+    height: 800px;
     background: url(../image/login.jpg) no-repeat center center;
+    background-size: cover;
   }
   .login_page .login_box .center_box {
     width: 1200px;
