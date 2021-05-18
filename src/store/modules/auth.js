@@ -2,7 +2,7 @@ import api from '@/api/auth'
 import { PcCookie, Key } from '@/utils/cookie'
 
 const state = {
-  // 用户信息
+  // 用户信息，cookie中的数据是JSON格式，需要转化为对象
   userInfo: PcCookie.get(Key.userInfoKey) ? JSON.parse(PcCookie.get(Key.userInfoKey)) : null,
   // 访问令牌
   accessToken: PcCookie.get(Key.refreshTokenKey),
@@ -42,10 +42,10 @@ const actions = {
   UserLogin({commit}, userData) {
     const { username, password } = userData
     return new Promise((resolve, reject) => {
-      api.login({ username: username.trim(), password}).then(res => {
+      api.login({ username: username.trim(), password }).then(res => {
         const { code, data} = res
         if (code === 20000) {
-          // 状态赋值
+          // 状态赋值，此时的data为JSON格式
           commit('SET_USER_STATE', data)
         }
         resolve(res)
