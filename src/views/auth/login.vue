@@ -17,8 +17,9 @@
           <div class="form_body" v-if="reverse == 1">
             <!-- submit.prevent 阻止默认表单事件提交，采用loginSubmit -->
             <form @submit.prevent="loginSubmit">
-              <input type="text" v-model="loginData.username" placeholder="请输入用户名" autocomplete="off">
-              <input type="password" v-model="loginData.password" placeholder="请输入密码" autocomplete="off">
+              <input type="text" v-model="loginData.username" @change="loginUsernameChange" placeholder="请输入用户名" autocomplete="off">
+              <!-- <div class="error_msg">{{loginUsernameMessage}}</div> -->
+              <input type="password" v-model="loginData.password" @change="loginPasswordChange" placeholder="请输入密码" autocomplete="off">
               <div class="error_msg">{{loginMessage}}</div>
               <input type="submit" v-if="subState" disabled="disabled" value="登录中···" class="btn" />
               <input type="submit" v-else value="登录" @submit="loginSubmit" class="btn" />
@@ -28,12 +29,12 @@
           <!-- 注册 -->
           <div class="form_body r180" v-if="reverse == 2">
             <form @submit.prevent="regSubmit">
-              <input type="text" v-model="registerData.username" placeholder="请输入用户名" autocomplete="off">
-              <input type="password" v-model="registerData.password" placeholder="6-30位密码，可用数字/字母/符号组合" autocomplete="off">
-              <input type="password" v-model="registerData.repPassword" placeholder="确认密码" >
+              <input type="text" v-model="registerData.username" @change="registUsernameChange" placeholder="请输入用户名" autocomplete="off">
+              <input type="password" v-model="registerData.password" @change="registPasswordChange" placeholder="6-30位密码，可用数字/字母/符号组合" autocomplete="off">
+              <input type="password" v-model="registerData.repPassword" @change="repRegistPasswordChange" placeholder="确认密码" >
               <div class="error_msg">{{regMessage}}</div>
               <div class="agree">
-                <input type="checkbox" id="tonyi" v-model="registerData.check">
+                <input type="checkbox" id="tonyi" @change="checkChange" v-model="registerData.check">
                 <label for="tonyi">我已经阅读并同意</label><a href="jvascript:;"  @click="xieyi = true">《用户协议》</a>
               </div>
               <input type="submit" v-if="subState" disabled="disabled" value="提交中···" class="btn">
@@ -68,7 +69,7 @@ export default {
         subState: false, //提交状态
         xieyi: false, // 显示隐藏协议内容
         xieyiContent: null, // 协议内容
-        redirectURL: '//www.mengxuegu.com', // 登录成功后重写向地址
+        redirectURL: '//www.baidu.com', // 登录成功后重写向地址
         loginData: { // 登录表单数据
             username: '',
             password: ''
@@ -100,7 +101,55 @@ export default {
             this.reverse = int
           }, 200)
       },
-
+      // 监听输入验证格式是否正确
+      loginUsernameChange() {
+        // 校验用户名
+        if (!isvalidUsername(this.loginData.username)) {
+          this.loginMessage = '请输入正确的用户名'
+          return false
+        } else {
+          this.loginMessage = ''
+        }
+      },
+      loginPasswordChange() {
+        // 校验密码
+        if (this.loginData.password.length < 6) {
+          this.loginMessage = '请输入正确的用户名或密码'
+        } else {
+          this.loginMessage = ''
+        }
+      },
+      registUsernameChange() {
+        // 判断用户名是否合法
+        if (!isvalidUsername(this.registerData.username)) {
+          this.regMessage = '用户名应包含4-30位中文，数组，字母或下划线'
+        } else {
+          this.regMessage = ''
+        }
+      },
+      registPasswordChange() {
+        // 校验密码
+        if (this.registerData.password.length < 6 || this.registerData.password.length > 30) {
+          this.regMessage = '请输入6-30位密码，区分字母大小写且不可有空格'
+        } else {
+          this.regMessage = ''
+        }
+      },
+      repRegistPasswordChange() {
+        // 重复密码
+        if (this.registerData.repPassword !== this.registerData.password) {
+          this.regMessage = '两次输入的密码不一致'
+        } else {
+          this.regMessage = ''
+        }
+      },
+      checkChange() {
+        if (!this.registerData.check) {
+          this.regMessage = '请认真阅读并同意用户协议'
+        } else {
+          this.regMessage = ''
+        }
+      },
       // 提交登录
       loginSubmit() {
         // 校验表单
